@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 from dataset.Mydataset import ImageDataset
 from model import Resnet, Vgg
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 
 from model.MedMamba import VSSM
 from model.MsMamba import MSVSSM
@@ -57,8 +57,8 @@ test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=16, shuffle=F
 ##############################################################################################
 n_classes = 2
 task = 'binary-class'
-model_name = 'MSVSSM02'
-w_fold='old/'
+model_name = 'vgg19'
+w_fold='old02/'
 NUM_EPOCHS =100
 
 lr = 0.00003
@@ -119,10 +119,10 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 #     emb_dropout = 0.1
 # )
 # model = VSSM(num_classes=2)
-model = MSVSSM(num_classes=2)
+# model = MSVSSM(num_classes=2)
 
 # model = Resnet.get_resnet34(n_class=n_classes)
-# model = Vgg.get_vgg19_bn(n_class=n_classes)
+model = Vgg.get_vgg19_bn(n_class=n_classes)
 # model = MSMamba(
 #         image_size=512,
 #         num_classes=2,
@@ -190,7 +190,11 @@ def model_test():
     recall = recall_score(y_true, y_score, average='binary')
     f1 = f1_score(y_true, y_score, average='binary')
 
-    print(f"Accuracy: {accuracy},Precision: {precision},Recall: {recall},F1 Score: {f1}")
+    # 计算特异度
+    tn, fp, fn, tp = confusion_matrix(y_true, y_score).ravel()
+    specificity = tn / (tn + fp)
+
+    print(f"Accuracy: {accuracy},Precision: {precision},Recall: {recall},F1 Score: {f1}, specificity: {specificity}")
     return accuracy, f1
 
 
